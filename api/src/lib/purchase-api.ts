@@ -1,9 +1,4 @@
-export enum PurchaseStatus {
-  SUCCESS = 'success',
-  MERCHANT_REJECTED = 'merchant-rejected',
-  CHARGE_FAILED = 'charge-failed',
-  INVALID_DETAILS = 'invalid-details'
-}
+import { PurchaseStatus } from "src/types/PurchaseStatus";
 
 const getRandomPurchaseStatus = (): PurchaseStatus => {
     const statuses = ['success', 'merchant-rejected', 'charge-failed', 'invalid-details'];

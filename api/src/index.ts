@@ -1,35 +1,53 @@
 import cors from 'cors';
-import express, { Response } from 'express';
+import express, { Request, Response } from 'express';
+import { executePurchase } from './lib/purchase-api';
+import { getProducts } from './model/Product';
+import { savePurchase } from './model/Purchase';
+import { assessRisk } from './risk';
+import { PurchaseStatus } from './types/PurchaseStatus';
+import { RiskAssessmentStatus } from './types/RiskAssessmentStatus';
 
 const app = express();
 const port = 8080;
 
-const products = [
-  {
-    id: 1,
-    productUrl: "https://www.bedbathandbeyond.com/store/product/kate-spade-new-york-2-slice-toaster/5374432",
-    productPrice: 9499,
-    discountCode: "FREE5FROMNATE"
-  },
-  {
-    id: 2,
-    productUrl: "https://www.oculus.com/quest-2/",
-    productPrice: 29900
-  },
-  {
-    id: 3,
-    productUrl: "https://www.apple.com/shop/product/MME73AM/A/airpods-3rd-generation",
-    productPrice: 17900,
-    discountCode: "GIVEME50"
-  }
-];
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
 app.get('/products', (_, res: Response) => {
-  res.send(products)
+  res.send(getProducts());
+});
+
+app.post('/purchase/:productId', async (req: Request, res: Response) => {
+  const productId = Number(req.params.productId);
+  const { userId, paymentMethodId } = req.body;
+
+  const riskAssessment = await assessRisk(productId, userId, paymentMethodId);
+
+  let status = PurchaseStatus.PENDING;
+
+  switch(riskAssessment.status) {
+    case RiskAssessmentStatus.SUCCESS:
+      status = await executePurchase(userId, productId, paymentMethodId);
+      break;
+    
+    case RiskAssessmentStatus.REJECTED:
+      status = PurchaseStatus.REJECTED;
+      break;
+    
+    case RiskAssessmentStatus.FLAGGED_FOR_REVIEW:
+      status = PurchaseStatus.PENDING;
+      break;
+  }
+
+  const purchase = savePurchase(productId, userId, paymentMethodId, status);
+
+  res.send({ purchase, riskAssessment })
 });
 
 app.listen(port, () => {
   console.log(`API listening at http://localhost:${port}`)
 });
+
+export default app;

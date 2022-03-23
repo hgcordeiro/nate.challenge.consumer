@@ -9,8 +9,8 @@ const getDelayedVoid = async (): Promise<void> => {
 interface PurchaseDetails {
 };
 
-const acceptPurchase = async (purchaseDetails: PurchaseDetails): Promise<void> => getDelayedVoid();
+export const acceptPurchase = async (purchaseDetails: PurchaseDetails): Promise<void> => getDelayedVoid();
 
-const rejectPurchase = async (purchaseDetails: PurchaseDetails): Promise<void> => getDelayedVoid();
+export const rejectPurchase = async (purchaseDetails: PurchaseDetails): Promise<void> => getDelayedVoid();
 
-const flagPurchaseForReview = async (purchaseDetails: PurchaseDetails): Promise<void> => getDelayedVoid();
+export const flagPurchaseForReview = async (purchaseDetails: PurchaseDetails): Promise<void> => getDelayedVoid();
